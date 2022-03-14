@@ -1,0 +1,73 @@
+Sub envioDireto()
+'
+' envioDireto Macro
+'
+
+'
+    Dim Outlook As Object
+    Dim Email As Object
+    
+    Dim saudacao
+        saudacao = Iif(Time <= "12:00:00", "Bom dia,", Iif(Time <= "18:00:00", "Boa tarde,", "Boa noite,"))
+       
+    Set Outlook = CreateObject("Outlook.Application")
+    Set Email = Outlook.CreateItem(olMailItem)
+   
+    'Seleciona Tabela Cliente
+    ActiveWorkbook.Worksheets("Planilha1").Sort.SortFields.Clear
+    ActiveWorkbook.Worksheets("Planilha1").Sort.SortFields.Add2 Key:=Range("a2"), _
+    SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+       
+    'Ordenar Clientes
+    With ActiveWorkbook.Worksheets("Planilha1").Sort
+        .SetRange Range("A1").CurrentRegion
+        .Header = xlYes
+        .MatchCase = False
+        .Orientation = xlTopToBottom
+        .SortMethod = xlPinYin
+        .Apply
+    End With
+    
+    If Cells(2, 1).Value = "" Then GoTo LastLine Else GoTo continue
+    
+continue:
+    Range("A1").Select
+    Selection.AutoFilter
+    ActiveSheet.Range("A1").AutoFilter Field:=1, Criteria1:=Cells(2, 1).Value
+    quantidade = Range(Selection, Selection.End(xlDown)).Rows.Count
+    Selection.AutoFilter
+    
+    tabela = "A1:D" & quantidade
+   
+    With Email
+
+'Envio
+        .To = Cells(2, 5).Value 'Pessoa que irá receber
+        .cc = Cells(2, 6).Value 'Pessoa que receberá a cópia
+
+'Título
+        .Subject = Cells(2, 1).Value & " - " & Cells(2, 2).Value & " - " & "Liberacao Ordem"
+
+'Corpo
+        .body = saudacao & vbCrLf & vbCrLf & "Favor analisar liberação para faturamento abaixo:"
+
+       .HTMLBody = .HTMLBody & copiaTabela(Range(tabela)) & "<div><br> Atenciosamente, <br><br> Lucas Henrique <br> <div/>" _
+            & "<div>"Nome da empresa"<div/>" _
+            & "<div>Contato: +55 11 99999-9999, Email: ""<div/>" _
+            & "<div>Visite-nos no <a href = "URL site"</a> e siga-nos no " _
+            & "<a href = "URL Facebook">Facebook</a>, " _
+            & "<a href = "URL Instagram">Instagram<a/> e " _
+            & "<a href = "URL Youtube">Youtube<a/>.<div/>"
+            
+        .Send
+       
+    End With
+   
+    Set Outlook = Nothing
+    Set Email = Nothing
+    
+LastLine:
+
+Macro2
+
+End Sub
