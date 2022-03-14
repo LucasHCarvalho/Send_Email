@@ -1,0 +1,46 @@
+Function copiaTabela(tabela As Range)
+
+    Dim arquivo As Object
+    Dim textoSistema As Object
+    Dim arquivoTemporario As String
+    Dim WBtemporario As Workbook
+
+    arquivoTemporario = Environ$("temp") & "\" & Format(Now, "dd-mm-yy h-mm-ss") & ".htm"
+
+    tabela.Copy
+    
+    Set WBtemporario = Workbooks.Add(1)
+    
+    With WBtemporario.Sheets(1)
+        .Cells(1).PasteSpecial Paste:=8
+        .Cells(1).PasteSpecial xlPasteValues, , False, False
+        .Cells(1).PasteSpecial xlPasteFormats, , False, False
+        .Cells(1).Select
+        Application.CutCopyMode = False
+    End With
+
+    With WBtemporario.PublishObjects.Add( _
+        SourceType:=xlSourceRange, _
+        Filename:=arquivoTemporario, _
+        Sheet:=WBtemporario.Sheets(1).Name, _
+        Source:=WBtemporario.Sheets(1).UsedRange.Address, _
+        HtmlType:=xlHtmlStatic)
+        .Publish (True)
+    End With
+
+    Set arquivo = CreateObject("Scripting.FileSystemObject")
+    Set textoSistema = arquivo.GetFile(arquivoTemporario).OpenAsTextStream(1, -2)
+    
+    copiaTabela = textoSistema.readall
+    textoSistema.Close
+    copiaTabela = Replace(copiaTabela, "align=center x:publishsource=", "align=left x:publishsource=")
+
+    WBtemporario.Close savechanges:=False
+
+    Kill arquivoTemporario
+
+    Set textoSistema = Nothing
+    Set arquivo = Nothing
+    Set WBtemporario = Nothing
+    
+End Function
