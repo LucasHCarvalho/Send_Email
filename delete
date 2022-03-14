@@ -1,0 +1,17 @@
+    If Cells(2, 1).Value = "" Then GoTo LastLine Else GoTo continue
+continue:
+    
+    Range("A1").Select
+    Selection.AutoFilter
+    ActiveSheet.Range("A1").AutoFilter Field:=1, Criteria1:=Cells(2, 1)
+    quantidade = Range(Selection, Selection.End(xlDown)).Rows.Count
+    While quantidade > 1
+        Planilha1.Rows(2).Delete
+        quantidade = quantidade - 1
+    Wend
+    
+    Selection.AutoFilter
+    
+LastLine:
+
+End Sub
